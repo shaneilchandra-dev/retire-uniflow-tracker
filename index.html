@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retire UniFlow — Project Tracker</title>
+<style>
+  :root {
+    --hf-red: #e2001a;
+    --hf-dark: #1a1a1a;
+    --bg: #f5f5f5;
+    --surface: #fff;
+    --border: #e0e0e0;
+    --text: #1a1a1a;
+    --text-muted: #666;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+
+  .header { background: var(--hf-dark); color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .hf-logo { font-size: 22px; font-weight: 700; color: var(--hf-red); }
+  .header-title { font-size: 18px; font-weight: 500; margin-top: 2px; }
+  .header-sub { font-size: 12px; color: #aaa; margin-top: 2px; }
+  .deadline-badge { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px; padding: 8px 18px; text-align: center; }
+  .deadline-days { font-size: 24px; font-weight: 700; line-height: 1.1; }
+  .deadline-label { font-size: 11px; color: #aaa; }
+
+  .stats { display: flex; gap: 12px; padding: 20px 32px 0; flex-wrap: wrap; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; flex: 1; min-width: 110px; cursor: pointer; transition: border-color .15s; }
+  .stat:hover, .stat.active { border-color: var(--hf-red); box-shadow: 0 0 0 2px rgba(226,0,26,.12); }
+  .stat-n { font-size: 26px; font-weight: 700; }
+  .stat-l { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .stat.s-ns .stat-n  { color: #374151; }
+  .stat.s-ip .stat-n  { color: #92400e; }
+  .stat.s-ii .stat-n  { color: #1e40af; }
+  .stat.s-ok .stat-n  { color: #065f46; }
+  .stat.s-bl .stat-n  { color: #991b1b; }
+
+  .progress-wrap { padding: 16px 32px 0; }
+  .progress-bar { height: 7px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--hf-red); border-radius: 4px; transition: width .4s; }
+  .progress-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+
+  .toolbar { display: flex; gap: 10px; padding: 16px 32px; flex-wrap: wrap; align-items: center; }
+  .search { flex: 1; min-width: 180px; padding: 7px 11px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; outline: none; }
+  .search:focus { border-color: var(--hf-red); }
+  .flt { padding: 7px 11px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; background: #fff; cursor: pointer; outline: none; }
+  .flt:focus { border-color: var(--hf-red); }
+  .ml-auto { margin-left: auto; }
+  .btn { padding: 7px 14px; border-radius: var(--radius); border: 1px solid var(--border); font-size: 12px; cursor: pointer; background: #fff; font-weight: 500; }
+  .btn:hover { background: #f5f5f5; }
+
+  .table-wrap { padding: 0 32px 32px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; min-width: 900px; }
+  thead { background: #f9f9f9; }
+  th { padding: 9px 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .4px; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; }
+  th:hover { color: var(--text); }
+  td { padding: 0; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+  tr.hide { display: none; }
+  .td-pad { padding: 8px 10px; }
+  .printer-name { font-weight: 500; font-size: 13px; }
+  .loc { font-size: 12px; color: var(--text-muted); }
+  .ip  { font-family: monospace; font-size: 11px; color: var(--text-muted); }
+
+  /* Inline select / input — no click-to-edit, always live */
+  select.cell-sel {
+    width: 100%; height: 100%;
+    border: none; background: transparent;
+    font-size: 12px; font-weight: 600;
+    padding: 9px 10px;
+    cursor: pointer; outline: none;
+    appearance: auto;
+    -webkit-appearance: auto;
+  }
+  select.cell-sel:focus { background: #fffbe6; }
+
+  input.cell-inp {
+    width: 100%; border: none; background: transparent;
+    font-size: 12px; padding: 9px 10px;
+    font-family: inherit; outline: none;
+  }
+  input.cell-inp:focus { background: #fffbe6; outline: 1px solid #ccc; }
+  input.cell-inp[type="date"] { cursor: pointer; }
+
+  textarea.cell-ta {
+    width: 100%; border: none; background: transparent;
+    font-size: 12px; padding: 8px 10px;
+    font-family: inherit; resize: none; outline: none;
+    min-height: 38px; line-height: 1.4;
+  }
+  textarea.cell-ta:focus { background: #fffbe6; outline: 1px solid #ccc; }
+
+  /* Status colours on the select */
+  select[data-v="Not started"] { background: #e5e7eb; color: #374151; }
+  select[data-v="In progress"] { background: #fef3c7; color: #92400e; }
+  select[data-v="In Intune"]   { background: #dbeafe; color: #1e40af; }
+  select[data-v="Complete"]    { background: #d1fae5; color: #065f46; }
+  select[data-v="Blocked"]     { background: #fee2e2; color: #991b1b; }
+
+  /* Priority colours */
+  select[data-p="Critical"] { background: #fee2e2; color: #991b1b; }
+  select[data-p="High"]     { background: #ffedd5; color: #9a3412; }
+  select[data-p="Medium"]   { background: #fef9c3; color: #713f12; }
+  select[data-p="Low"]      { background: #f0fdf4; color: #14532d; }
+  select[data-p=""]         { background: transparent; color: #aaa; }
+
+  .tfoot-bar { padding: 10px 14px; background: #f9f9f9; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; }
+
+  .toast { position: fixed; bottom: 20px; right: 20px; background: #1a1a1a; color: #fff; padding: 9px 16px; border-radius: var(--radius); font-size: 12px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 99; }
+  .toast.on { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="hf-logo">HelloFresh</div>
+    <div class="header-title">Retire UniFlow — ANZ Printer Migration</div>
+    <div class="header-sub">Track migration of all UniFlow printers to Intune · ANZ Region</div>
+  </div>
+  <div class="deadline-badge">
+    <div class="deadline-label">Deadline</div>
+    <div class="deadline-days" id="ddays">—</div>
+    <div class="deadline-label">31 Aug 2026</div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat" onclick="filterStat('')" id="st-all"><div class="stat-n" id="cn-all">20</div><div class="stat-l">Total</div></div>
+  <div class="stat s-ns" onclick="filterStat('Not started')" id="st-ns"><div class="stat-n" id="cn-ns">0</div><div class="stat-l">Not started</div></div>
+  <div class="stat s-ip" onclick="filterStat('In progress')" id="st-ip"><div class="stat-n" id="cn-ip">0</div><div class="stat-l">In progress</div></div>
+  <div class="stat s-ii" onclick="filterStat('In Intune')"   id="st-ii"><div class="stat-n" id="cn-ii">0</div><div class="stat-l">In Intune</div></div>
+  <div class="stat s-ok" onclick="filterStat('Complete')"    id="st-ok"><div class="stat-n" id="cn-ok">0</div><div class="stat-l">Complete</div></div>
+  <div class="stat s-bl" onclick="filterStat('Blocked')"     id="st-bl"><div class="stat-n" id="cn-bl">0</div><div class="stat-l">Blocked</div></div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0"></div></div>
+  <div class="progress-meta"><span id="prog-txt">0 of 20 complete</span><span id="prog-pct">0%</span></div>
+</div>
+
+<div class="toolbar">
+  <input class="search" type="text" id="search" placeholder="Search printers, locations…" oninput="applyFilters()">
+  <select class="flt" id="floc" onchange="applyFilters()">
+    <option value="">All locations</option>
+    <option>ACT</option><option>Brisbane</option><option>Cavan (SA)</option>
+    <option>Chippendale (Syd)</option><option>Perth</option>
+    <option>Ravenhall (VIC)</option><option>Sydney</option><option>Tingalpa (QLD)</option>
+  </select>
+  <select class="flt" id="fpri" onchange="applyFilters()">
+    <option value="">All priorities</option>
+    <option>Critical</option><option>High</option><option>Medium</option><option>Low</option>
+  </select>
+  <div class="ml-auto" style="display:flex;gap:8px">
+    <button class="btn" onclick="exportCSV()">Export CSV</button>
+    <button class="btn" onclick="resetAll()">Reset</button>
+  </div>
+</div>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th style="min-width:220px" onclick="sort('name')">Printer ↕</th>
+      <th style="min-width:140px" onclick="sort('loc')">Location ↕</th>
+      <th style="min-width:110px" onclick="sort('ip')">IP Address ↕</th>
+      <th style="min-width:130px" onclick="sort('status')">Status ↕</th>
+      <th style="min-width:100px" onclick="sort('priority')">Priority ↕</th>
+      <th style="min-width:130px" onclick="sort('owner')">Site contact ↕</th>
+      <th style="min-width:120px" onclick="sort('date')">Target date ↕</th>
+      <th style="min-width:100px" onclick="sort('comms')">Comms sent ↕</th>
+      <th style="min-width:200px">Notes / Blockers</th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+  <tfoot><tr><td colspan="8"><div class="tfoot-bar"><span id="row-count">20 printers</span><span style="color:#bbb">Changes save automatically in browser</span></div></td></tr></tfoot>
+</table>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STATUSES  = ['Not started','In progress','In Intune','Complete','Blocked'];
+const PRIORITIES = ['','Critical','High','Medium','Low'];
+const DEADLINE  = new Date('2026-08-31');
+const KEY = 'uniflow-v2';
+
+const DEFAULT = [
+  {id:1,  name:'BeCool ACT',                        loc:'ACT',               ip:'10.80.98.164',  status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:2,  name:'BeCool DLQ',                        loc:'Tingalpa (QLD)',    ip:'10.60.98.200',  status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:3,  name:'BeCool SA',                         loc:'Cavan (SA)',        ip:'10.100.10.104', status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:4,  name:'BeCool VIC',                        loc:'Ravenhall (VIC)',   ip:'10.150.245.18', status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:5,  name:'Casa BeCool Office Printer',        loc:'Perth',             ip:'10.199.131.177',status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:6,  name:'Casa Dock Office Printer',          loc:'Perth',             ip:'10.199.30.14',  status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:7,  name:'Casa HR Office Printer',            loc:'Perth',             ip:'10.199.30.240', status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:8,  name:'Esky BeCool Dock Office',           loc:'Sydney',            ip:'10.92.22.96',   status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:9,  name:'Esky Hellofresh Dock',              loc:'Sydney',            ip:'10.92.6.11',    status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:10, name:'Esky HR Office',                    loc:'Sydney',            ip:'10.92.6.17',    status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:11, name:'Esky Main Office Upstairs',         loc:'Sydney',            ip:'10.92.6.15',    status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:12, name:'Esky Production Control Office',    loc:'Sydney',            ip:'10.92.6.14',    status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:13, name:'Queen St - Level 1',                loc:'Chippendale (Syd)', ip:'10.166.6.24',   status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:14, name:'Queen St - Level 2',                loc:'Chippendale (Syd)', ip:'10.166.6.22',   status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:15, name:'Queen St - Level 3',                loc:'Chippendale (Syd)', ip:'10.166.6.23',   status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:16, name:'YouFoodz Dispatch Office 5840',     loc:'Brisbane',          ip:'10.10.8.105',   status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:17, name:'YouFoodz HR Training Area 5870',    loc:'Brisbane',          ip:'10.10.78.9',    status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:18, name:'YouFoodz Main Office Ground Floor', loc:'Brisbane',          ip:'10.10.8.102',   status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:19, name:'YouFoodz Maintenance Office 5840',  loc:'Brisbane',          ip:'10.10.8.108',   status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:20, name:'YouFoodz Office Level 1 5840',      loc:'Brisbane',          ip:'10.10.8.10',    status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+];
+
+let data = load();
+let activeStat = '';
+let sortCol = null, sortAsc = true;
+
+function load() {
+  try { const s = localStorage.getItem(KEY); if (s) return JSON.parse(s); } catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT));
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e){}
+}
+function row(id) { return data.find(r => r.id === id); }
+
+function set(id, field, val) {
+  const r = row(id);
+  if (!r) return;
+  r[field] = val;
+  save();
+  updateStats();
+  applyFilters();
+}
+
+function statusAttrs(s) {
+  const map = {'Not started':'ns','In progress':'ip','In Intune':'ii','Complete':'ok','Blocked':'bl'};
+  return map[s] || 'ns';
+}
+
+function buildRow(r) {
+  const statusOpts = STATUSES.map(s => `<option${s===r.status?' selected':''}>${s}</option>`).join('');
+  const priOpts = PRIORITIES.map(p => `<option value="${p}"${p===r.priority?' selected':''}>${p||'—'}</option>`).join('');
+
+  return `<tr data-id="${r.id}" data-status="${r.status}" data-loc="${r.loc}" data-pri="${r.priority}">
+    <td><div class="td-pad"><div class="printer-name">${r.name}</div></div></td>
+    <td><div class="td-pad loc">${r.loc}</div></td>
+    <td><div class="td-pad ip">${r.ip}</div></td>
+    <td style="padding:0">
+      <select class="cell-sel" data-v="${r.status}" onchange="set(${r.id},'status',this.value);this.dataset.v=this.value;this.parentElement.parentElement.dataset.status=this.value;toast('Saved')">
+        ${statusOpts}
+      </select>
+    </td>
+    <td style="padding:0">
+      <select class="cell-sel" data-p="${r.priority}" onchange="set(${r.id},'priority',this.value);this.dataset.p=this.value;this.parentElement.parentElement.dataset.pri=this.value;toast('Saved')">
+        ${priOpts}
+      </select>
+    </td>
+    <td style="padding:0">
+      <input class="cell-inp" type="text" value="${esc(r.owner)}" placeholder="Add contact…"
+        onchange="set(${r.id},'owner',this.value);toast('Saved')">
+    </td>
+    <td style="padding:0">
+      <input class="cell-inp" type="date" value="${r.date}"
+        onchange="set(${r.id},'date',this.value);toast('Saved')">
+    </td>
+    <td style="padding:0;text-align:center">
+      <input type="checkbox" style="width:16px;height:16px;cursor:pointer;accent-color:var(--hf-red)"
+        ${r.comms ? 'checked' : ''}
+        onchange="set(${r.id},'comms',this.checked?'yes':'');toast('Saved')">
+    </td>
+    <td style="padding:0">
+      <textarea class="cell-ta" rows="1" placeholder="Notes or blockers…"
+        onchange="set(${r.id},'notes',this.value);toast('Saved')">${esc(r.notes)}</textarea>
+    </td>
+  </tr>`;
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function render() {
+  document.getElementById('tbody').innerHTML = data.map(buildRow).join('');
+  updateStats();
+  applyFilters();
+}
+
+function updateStats() {
+  const c = {total:data.length,'Not started':0,'In progress':0,'In Intune':0,'Complete':0,'Blocked':0};
+  data.forEach(r => { if (c[r.status]!==undefined) c[r.status]++; });
+  document.getElementById('cn-all').textContent = c.total;
+  document.getElementById('cn-ns').textContent  = c['Not started'];
+  document.getElementById('cn-ip').textContent  = c['In progress'];
+  document.getElementById('cn-ii').textContent  = c['In Intune'];
+  document.getElementById('cn-ok').textContent  = c['Complete'];
+  document.getElementById('cn-bl').textContent  = c['Blocked'];
+  const pct = Math.round(c['Complete']/c.total*100);
+  document.getElementById('prog').style.width = pct+'%';
+  document.getElementById('prog-txt').textContent = `${c['Complete']} of ${c.total} complete`;
+  document.getElementById('prog-pct').textContent = pct+'%';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = Math.ceil((DEADLINE-today)/(864e5));
+  document.getElementById('ddays').textContent = d>0 ? d+'d' : d===0 ? 'Today' : 'Overdue';
+}
+
+function applyFilters() {
+  const q   = document.getElementById('search').value.toLowerCase();
+  const loc = document.getElementById('floc').value;
+  const pri = document.getElementById('fpri').value;
+  let vis = 0;
+  document.querySelectorAll('#tbody tr').forEach(tr => {
+    const id  = +tr.dataset.id;
+    const r   = row(id);
+    const ok  = (!q   || r.name.toLowerCase().includes(q) || r.loc.toLowerCase().includes(q) || r.ip.includes(q) || (r.owner||'').toLowerCase().includes(q))
+             && (!loc  || r.loc === loc)
+             && (!pri  || r.priority === pri)
+             && (!activeStat || r.status === activeStat);
+    tr.classList.toggle('hide', !ok);
+    if (ok) vis++;
+  });
+  document.getElementById('row-count').textContent = `${vis} of ${data.length} printers`;
+}
+
+function filterStat(s) {
+  activeStat = activeStat === s ? '' : s;
+  document.querySelectorAll('.stat').forEach(el => el.classList.remove('active'));
+  const map = {'':'st-all','Not started':'st-ns','In progress':'st-ip','In Intune':'st-ii','Complete':'st-ok','Blocked':'st-bl'};
+  document.getElementById(map[activeStat]||'st-all').classList.add('active');
+  applyFilters();
+}
+
+function sort(col) {
+  sortAsc = sortCol===col ? !sortAsc : true;
+  sortCol = col;
+  const priOrd = {'Critical':0,'High':1,'Medium':2,'Low':3,'':4};
+  const stOrd  = {'Blocked':0,'Not started':1,'In progress':2,'In Intune':3,'Complete':4};
+  data.sort((a,b) => {
+    let va = a[col]||'', vb = b[col]||'';
+    if (col==='priority') { va=priOrd[va]??4; vb=priOrd[vb]??4; return sortAsc?va-vb:vb-va; }
+    if (col==='status')   { va=stOrd[va]??5;  vb=stOrd[vb]??5;  return sortAsc?va-vb:vb-va; }
+    return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+  render();
+}
+
+function exportCSV() {
+  const h = ['Printer','Location','IP Address','Status','Priority','Site Contact','Target Date','Comms Sent','Notes'];
+  const rows = data.map(r => [r.name,r.loc,r.ip,r.status,r.priority,r.owner,r.date,r.comms?'Yes':'No',r.notes].map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent([h.join(','),...rows].join('\n'));
+  a.download = 'retire-uniflow-tracker.csv';
+  a.click();
+}
+
+function resetAll() {
+  if (!confirm('Reset all data to defaults?')) return;
+  data = JSON.parse(JSON.stringify(DEFAULT));
+  save(); activeStat='';
+  document.getElementById('search').value='';
+  document.getElementById('floc').value='';
+  document.getElementById('fpri').value='';
+  render();
+  toast('Reset to defaults');
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('on'), 1800);
+}
+
+render();
+document.getElementById('st-all').classList.add('active');
+</script>
+</body>
+</html>
