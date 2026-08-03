@@ -63,9 +63,7 @@
   .td-pad { padding: 8px 10px; }
   .printer-name { font-weight: 500; font-size: 13px; }
   .loc { font-size: 12px; color: var(--text-muted); }
-  .ip  { font-family: monospace; font-size: 11px; color: var(--text-muted); }
 
-  /* Inline select / input — no click-to-edit, always live */
   select.cell-sel {
     width: 100%; height: 100%;
     border: none; background: transparent;
@@ -93,14 +91,12 @@
   }
   textarea.cell-ta:focus { background: #fffbe6; outline: 1px solid #ccc; }
 
-  /* Status colours on the select */
   select[data-v="Not started"] { background: #e5e7eb; color: #374151; }
   select[data-v="In progress"] { background: #fef3c7; color: #92400e; }
   select[data-v="In Intune"]   { background: #dbeafe; color: #1e40af; }
   select[data-v="Complete"]    { background: #d1fae5; color: #065f46; }
   select[data-v="Blocked"]     { background: #fee2e2; color: #991b1b; }
 
-  /* Priority colours */
   select[data-p="Critical"] { background: #fee2e2; color: #991b1b; }
   select[data-p="High"]     { background: #ffedd5; color: #9a3412; }
   select[data-p="Medium"]   { background: #fef9c3; color: #713f12; }
@@ -166,7 +162,6 @@
     <tr>
       <th style="min-width:220px" onclick="sort('name')">Printer ↕</th>
       <th style="min-width:140px" onclick="sort('loc')">Location ↕</th>
-      <th style="min-width:110px" onclick="sort('ip')">IP Address ↕</th>
       <th style="min-width:130px" onclick="sort('status')">Status ↕</th>
       <th style="min-width:100px" onclick="sort('priority')">Priority ↕</th>
       <th style="min-width:130px" onclick="sort('owner')">Site contact ↕</th>
@@ -189,26 +184,26 @@ const DEADLINE  = new Date('2026-08-31');
 const KEY = 'uniflow-v2';
 
 const DEFAULT = [
-  {id:1,  name:'BeCool ACT',                        loc:'ACT',               ip:'10.80.98.164',  status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:2,  name:'BeCool DLQ',                        loc:'Tingalpa (QLD)',    ip:'10.60.98.200',  status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:3,  name:'BeCool SA',                         loc:'Cavan (SA)',        ip:'10.100.10.104', status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:4,  name:'BeCool VIC',                        loc:'Ravenhall (VIC)',   ip:'10.150.245.18', status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:5,  name:'Casa BeCool Office Printer',        loc:'Perth',             ip:'10.199.131.177',status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:6,  name:'Casa Dock Office Printer',          loc:'Perth',             ip:'10.199.30.14',  status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:7,  name:'Casa HR Office Printer',            loc:'Perth',             ip:'10.199.30.240', status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:8,  name:'Esky BeCool Dock Office',           loc:'Sydney',            ip:'10.92.22.96',   status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:9,  name:'Esky Hellofresh Dock',              loc:'Sydney',            ip:'10.92.6.11',    status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:10, name:'Esky HR Office',                    loc:'Sydney',            ip:'10.92.6.17',    status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:11, name:'Esky Main Office Upstairs',         loc:'Sydney',            ip:'10.92.6.15',    status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:12, name:'Esky Production Control Office',    loc:'Sydney',            ip:'10.92.6.14',    status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:13, name:'Queen St - Level 1',                loc:'Chippendale (Syd)', ip:'10.166.6.24',   status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:14, name:'Queen St - Level 2',                loc:'Chippendale (Syd)', ip:'10.166.6.22',   status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:15, name:'Queen St - Level 3',                loc:'Chippendale (Syd)', ip:'10.166.6.23',   status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:16, name:'YouFoodz Dispatch Office 5840',     loc:'Brisbane',          ip:'10.10.8.105',   status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:17, name:'YouFoodz HR Training Area 5870',    loc:'Brisbane',          ip:'10.10.78.9',    status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:18, name:'YouFoodz Main Office Ground Floor', loc:'Brisbane',          ip:'10.10.8.102',   status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:19, name:'YouFoodz Maintenance Office 5840',  loc:'Brisbane',          ip:'10.10.8.108',   status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
-  {id:20, name:'YouFoodz Office Level 1 5840',      loc:'Brisbane',          ip:'10.10.8.10',    status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:1,  name:'BeCool ACT',                        loc:'ACT',               status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:2,  name:'BeCool QLD',                        loc:'Tingalpa (QLD)',    status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:3,  name:'BeCool SA',                         loc:'Cavan (SA)',        status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:4,  name:'BeCool VIC',                        loc:'Ravenhall (VIC)',   status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:5,  name:'Casa BeCool Office Printer',        loc:'Perth',             status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:6,  name:'Casa Dock Office Printer',          loc:'Perth',             status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:7,  name:'Casa HR Office Printer',            loc:'Perth',             status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:8,  name:'Esky BeCool Dock Office',           loc:'Sydney',            status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:9,  name:'Esky Hellofresh Dock',              loc:'Sydney',            status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:10, name:'Esky HR Office',                    loc:'Sydney',            status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:11, name:'Esky Main Office Upstairs',         loc:'Sydney',            status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:12, name:'Esky Production Control Office',    loc:'Sydney',            status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:13, name:'Queen St - Level 1',                loc:'Chippendale (Syd)', status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:14, name:'Queen St - Level 2',                loc:'Chippendale (Syd)', status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:15, name:'Queen St - Level 3',                loc:'Chippendale (Syd)', status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:16, name:'YouFoodz Dispatch Office 5840',     loc:'Brisbane',          status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:17, name:'YouFoodz HR Training Area 5870',    loc:'Brisbane',          status:'In Intune',   priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:18, name:'YouFoodz Main Office Ground Floor', loc:'Brisbane',          status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:19, name:'YouFoodz Maintenance Office 5840',  loc:'Brisbane',          status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
+  {id:20, name:'YouFoodz Office Level 1 5840',      loc:'Brisbane',          status:'Not started', priority:'', owner:'', date:'', comms:'', notes:''},
 ];
 
 let data = load();
@@ -233,11 +228,6 @@ function set(id, field, val) {
   applyFilters();
 }
 
-function statusAttrs(s) {
-  const map = {'Not started':'ns','In progress':'ip','In Intune':'ii','Complete':'ok','Blocked':'bl'};
-  return map[s] || 'ns';
-}
-
 function buildRow(r) {
   const statusOpts = STATUSES.map(s => `<option${s===r.status?' selected':''}>${s}</option>`).join('');
   const priOpts = PRIORITIES.map(p => `<option value="${p}"${p===r.priority?' selected':''}>${p||'—'}</option>`).join('');
@@ -245,7 +235,6 @@ function buildRow(r) {
   return `<tr data-id="${r.id}" data-status="${r.status}" data-loc="${r.loc}" data-pri="${r.priority}">
     <td><div class="td-pad"><div class="printer-name">${r.name}</div></div></td>
     <td><div class="td-pad loc">${r.loc}</div></td>
-    <td><div class="td-pad ip">${r.ip}</div></td>
     <td style="padding:0">
       <select class="cell-sel" data-v="${r.status}" onchange="set(${r.id},'status',this.value);this.dataset.v=this.value;this.parentElement.parentElement.dataset.status=this.value;toast('Saved')">
         ${statusOpts}
@@ -310,9 +299,9 @@ function applyFilters() {
   document.querySelectorAll('#tbody tr').forEach(tr => {
     const id  = +tr.dataset.id;
     const r   = row(id);
-    const ok  = (!q   || r.name.toLowerCase().includes(q) || r.loc.toLowerCase().includes(q) || r.ip.includes(q) || (r.owner||'').toLowerCase().includes(q))
-             && (!loc  || r.loc === loc)
-             && (!pri  || r.priority === pri)
+    const ok  = (!q || r.name.toLowerCase().includes(q) || r.loc.toLowerCase().includes(q) || (r.owner||'').toLowerCase().includes(q))
+             && (!loc || r.loc === loc)
+             && (!pri || r.priority === pri)
              && (!activeStat || r.status === activeStat);
     tr.classList.toggle('hide', !ok);
     if (ok) vis++;
@@ -343,8 +332,8 @@ function sort(col) {
 }
 
 function exportCSV() {
-  const h = ['Printer','Location','IP Address','Status','Priority','Site Contact','Target Date','Comms Sent','Notes'];
-  const rows = data.map(r => [r.name,r.loc,r.ip,r.status,r.priority,r.owner,r.date,r.comms?'Yes':'No',r.notes].map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
+  const h = ['Printer','Location','Status','Priority','Site Contact','Target Date','Comms Sent','Notes'];
+  const rows = data.map(r => [r.name,r.loc,r.status,r.priority,r.owner,r.date,r.comms?'Yes':'No',r.notes].map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent([h.join(','),...rows].join('\n'));
   a.download = 'retire-uniflow-tracker.csv';
